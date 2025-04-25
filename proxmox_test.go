@@ -3,6 +3,7 @@ package proxmox
 import (
 	"context"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/coredns/coredns/plugin/pkg/dnstest"
@@ -12,14 +13,16 @@ import (
 )
 
 var (
-	backend     = os.Getenv("CDNS_PX_BACKEND")
-	tokenId     = os.Getenv("CDNS_PX_TOKEN_ID")
-	tokenSecret = os.Getenv("CDNS_PX_TOKEN_SECRET")
-	insecure    = os.Getenv("CDNS_PX_INSECURE")
-	nodeName    = os.Getenv("CDNS_PX_NODE_NAME")
-	vmName      = os.Getenv("CDNS_PX_VM_NAME")
-	vmIPv4      = os.Getenv("CDNS_PX_VM_IP_V4")
-	vmIPv6      = os.Getenv("CDNS_PX_VM_IP_V6")
+	backend            = os.Getenv("CDNS_PX_BACKEND")
+	tokenId            = os.Getenv("CDNS_PX_TOKEN_ID")
+	tokenSecret        = os.Getenv("CDNS_PX_TOKEN_SECRET")
+	insecure           = os.Getenv("CDNS_PX_INSECURE")
+	nodeName           = os.Getenv("CDNS_PX_NODE_NAME")
+	vmName             = os.Getenv("CDNS_PX_VM_NAME")
+	vmIPv4             = os.Getenv("CDNS_PX_VM_IP_V4")
+	awaitedAnswersIPv4 = os.Getenv("CDNS_PX_AWAITED_ANSWERS_IP_V4")
+	vmIPv6             = os.Getenv("CDNS_PX_VM_IP_V6")
+	awaitedAnswersIPv6 = os.Getenv("CDNS_PX_AWAITED_ANSWERS_IP_V6")
 )
 
 //	func TestExample(t *testing.T) {
@@ -101,8 +104,14 @@ func TestProxmox_GetIPsByNameIPv4(t *testing.T) {
 	}
 
 	t.Log(rec.Msg)
-	if a := rec.Msg.Answer; len(a) != 3 {
-		t.Errorf("Expected 3 answer, got %d", len(a))
+
+	iAwaitedAnswersIPv4, err := strconv.Atoi(awaitedAnswersIPv4)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if a := rec.Msg.Answer; len(a) != iAwaitedAnswersIPv4 {
+		t.Errorf("Expected %d answer, got %d", iAwaitedAnswersIPv4, len(a))
 	}
 	if a := rec.Msg.Answer[0].(*dns.A).A.String(); a != vmIPv4 {
 		t.Errorf("Expected %s, got %s", vmIPv4, a)
@@ -127,8 +136,14 @@ func TestProxmox_GetIPsByNameIPv6(t *testing.T) {
 	}
 
 	t.Log(rec.Msg)
-	if aaaa := rec.Msg.Answer; len(aaaa) != 3 {
-		t.Errorf("Expected 3 answer, got %d", len(aaaa))
+
+	iAwaitedAnswersIPv6, err := strconv.Atoi(awaitedAnswersIPv6)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if aaaa := rec.Msg.Answer; len(aaaa) != iAwaitedAnswersIPv6 {
+		t.Errorf("Expected %d answer, got %d", iAwaitedAnswersIPv6, len(aaaa))
 	}
 	if aaaa := rec.Msg.Answer[0].(*dns.AAAA).AAAA.String(); aaaa != vmIPv6 {
 		t.Errorf("Expected %s, got %s", vmIPv6, aaaa)
