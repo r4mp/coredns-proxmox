@@ -3,22 +3,35 @@ package proxmox
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/coredns/coredns/plugin"
-	"github.com/coredns/coredns/request"
-	"github.com/miekg/dns"
 	"io"
 	"net"
 	"net/http"
 	"strings"
+
+	"github.com/coredns/coredns/plugin"
+	"github.com/coredns/coredns/request"
+	"github.com/miekg/dns"
 )
 
 type Proxmox struct {
 	Backend     string
 	TokenId     string
 	TokenSecret string
+	Insecure    string
 	Next        plugin.Handler
+}
+
+func (p Proxmox) httpClient() *http.Client {
+	if p.Insecure == "true" {
+		transCfg := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		return &http.Client{Transport: transCfg}
+	}
+	return &http.Client{}
 }
 
 func (p Proxmox) Name() string { return "proxmox" }
@@ -75,7 +88,7 @@ func (p Proxmox) GetNodes() (info []NodeInfo, err error) {
 
 	authString := fmt.Sprintf("PVEAPIToken=%s=%s", p.TokenId, p.TokenSecret)
 	req.Header.Set("Authorization", authString)
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := p.httpClient().Do(req)
 	if err != nil {
 		return
 	}
@@ -107,7 +120,7 @@ func (p Proxmox) GetVMs(nodeName string) (VMs []VMInfo, err error) {
 
 	authString := fmt.Sprintf("PVEAPIToken=%s=%s", p.TokenId, p.TokenSecret)
 	req.Header.Set("Authorization", authString)
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := p.httpClient().Do(req)
 	if err != nil {
 		return
 	}
@@ -166,7 +179,7 @@ func (p Proxmox) GetIPsById(node string, vmid int) (ips []net.IP, err error) {
 
 	authString := fmt.Sprintf("PVEAPIToken=%s=%s", p.TokenId, p.TokenSecret)
 	req.Header.Set("Authorization", authString)
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := p.httpClient().Do(req)
 	if err != nil {
 		return
 	}

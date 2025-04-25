@@ -13,6 +13,7 @@ func setup(c *caddy.Controller) error {
 	backend := ""
 	tokenId := ""
 	tokenSecret := ""
+	insecure := ""
 
 	c.Next()
 	if c.NextBlock() {
@@ -36,6 +37,12 @@ func setup(c *caddy.Controller) error {
 				}
 				tokenSecret = c.Val()
 				break
+			case "insecure":
+				if !c.NextArg() {
+					return plugin.Error("proxmox", c.ArgErr())
+				}
+				insecure = c.Val()
+				break
 			default:
 				if c.Val() != "}" {
 					return plugin.Error("proxmox", c.Err("unknown property"))
@@ -47,12 +54,12 @@ func setup(c *caddy.Controller) error {
 		}
 	}
 
-	if backend == "" || tokenId == "" || tokenSecret == "" {
+	if backend == "" || tokenId == "" || tokenSecret == "" || insecure == "" {
 		return plugin.Error("proxmox", c.ArgErr())
 	}
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
-		return Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret, Next: next}
+		return Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret, Insecure: insecure, Next: next}
 	})
 
 	return nil
