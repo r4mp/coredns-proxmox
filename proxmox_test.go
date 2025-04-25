@@ -2,12 +2,24 @@ package proxmox
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/coredns/coredns/plugin/pkg/dnstest"
 	"github.com/coredns/coredns/plugin/test"
 
 	"github.com/miekg/dns"
+)
+
+var (
+	backend     = os.Getenv("CDNS_PX_BACKEND")
+	tokenId     = os.Getenv("CDNS_PX_TOKEN_ID")
+	tokenSecret = os.Getenv("CDNS_PX_TOKEN_SECRET")
+	insecure    = os.Getenv("CDNS_PX_INSECURE")
+	nodeName    = os.Getenv("CDNS_PX_NODE_NAME")
+	vmName      = os.Getenv("CDNS_PX_VM_NAME")
+	vmIPv4      = os.Getenv("CDNS_PX_VM_IP_V4")
+	vmIPv6      = os.Getenv("CDNS_PX_VM_IP_V6")
 )
 
 //	func TestExample(t *testing.T) {
@@ -33,12 +45,9 @@ import (
 //		}
 //	}
 func TestGetNodeNames(t *testing.T) {
-	backend := "https://jupiter.renner.uno:8006/api2/json/"
-	tokenId := "root@pam!cdns-dev"
-	tokenSecret := "afe4c1a4-29a5-472a-8b8b-00c4c0b36b7d"
 	//t.Log(nodes)
 
-	pve := Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret}
+	pve := Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret, Insecure: insecure}
 	info, err := pve.GetNodes()
 
 	if err != nil {
@@ -50,13 +59,9 @@ func TestGetNodeNames(t *testing.T) {
 }
 
 func TestGetVMNames(t *testing.T) {
-	backend := "https://jupiter.renner.uno:8006/api2/json/"
-	tokenId := "root@pam!cdns-dev"
-	tokenSecret := "afe4c1a4-29a5-472a-8b8b-00c4c0b36b7d"
-	nodeName := "saturn"
 	//t.Log(nodes)
 
-	pve := Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret}
+	pve := Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret, Insecure: insecure}
 	info, err := pve.GetVMs(nodeName)
 
 	if err != nil {
@@ -68,12 +73,7 @@ func TestGetVMNames(t *testing.T) {
 }
 
 func TestProxmox_GetIPs(t *testing.T) {
-	backend := "https://jupiter.renner.uno:8006/api2/json/"
-	tokenId := "root@pam!cdns-dev"
-	tokenSecret := "afe4c1a4-29a5-472a-8b8b-00c4c0b36b7d"
-	nodeName := "caddy.srv.renner.uno"
-
-	pve := Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret}
+	pve := Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret, Insecure: insecure}
 
 	ips, err := pve.GetIPs(nodeName)
 	if err != nil {
@@ -85,12 +85,7 @@ func TestProxmox_GetIPs(t *testing.T) {
 }
 
 func TestProxmox_GetIPsByNameIPv4(t *testing.T) {
-	backend := "https://jupiter.renner.uno:8006/api2/json/"
-	tokenId := "root@pam!cdns-dev"
-	tokenSecret := "afe4c1a4-29a5-472a-8b8b-00c4c0b36b7d"
-	vmName := "caddy.srv.renner.uno."
-
-	pve := Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret}
+	pve := Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret, Insecure: insecure}
 
 	ctx := context.TODO()
 	r := new(dns.Msg)
@@ -109,19 +104,14 @@ func TestProxmox_GetIPsByNameIPv4(t *testing.T) {
 	if a := rec.Msg.Answer; len(a) != 3 {
 		t.Errorf("Expected 3 answer, got %d", len(a))
 	}
-	if a := rec.Msg.Answer[0].(*dns.A).A.String(); a != "10.2.40.13" {
-		t.Errorf("Expected 10.2.40.13, got %s", a)
+	if a := rec.Msg.Answer[0].(*dns.A).A.String(); a != vmIPv4 {
+		t.Errorf("Expected %s, got %s", vmIPv4, a)
 	}
 
 }
 
 func TestProxmox_GetIPsByNameIPv6(t *testing.T) {
-	backend := "https://jupiter.renner.uno:8006/api2/json/"
-	tokenId := "root@pam!cdns-dev"
-	tokenSecret := "afe4c1a4-29a5-472a-8b8b-00c4c0b36b7d"
-	vmName := "caddy.srv.renner.uno."
-
-	pve := Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret}
+	pve := Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret, Insecure: insecure}
 
 	ctx := context.TODO()
 	r := new(dns.Msg)
@@ -137,11 +127,11 @@ func TestProxmox_GetIPsByNameIPv6(t *testing.T) {
 	}
 
 	t.Log(rec.Msg)
-	if a := rec.Msg.Answer; len(a) != 3 {
-		t.Errorf("Expected 3 answer, got %d", len(a))
+	if aaaa := rec.Msg.Answer; len(aaaa) != 3 {
+		t.Errorf("Expected 3 answer, got %d", len(aaaa))
 	}
-	if a := rec.Msg.Answer[0].(*dns.A).A.String(); a != "10.2.40.13" {
-		t.Errorf("Expected 10.2.40.13, got %s", a)
+	if aaaa := rec.Msg.Answer[0].(*dns.AAAA).AAAA.String(); aaaa != vmIPv6 {
+		t.Errorf("Expected %s, got %s", vmIPv6, aaaa)
 	}
 
 }
