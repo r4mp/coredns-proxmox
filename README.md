@@ -1,13 +1,13 @@
-# example
+# proxmox
 
 ## Name
 
-*example* - prints "example" after a query is handled.
+*proxmox* - fetch IP addresses from proxmox
 
 ## Description
 
-The example plugin prints "example" on every query that got handled by the server. It serves as
-documentation for writing CoreDNS plugins.
+This plugin gets an A record from proxmox. It uses the REST API of proxmox
+to ask for a an IP address of a hostname.
 
 ## Compilation
 
@@ -18,10 +18,8 @@ The [manual](https://coredns.io/manual/toc/#what-is-coredns) will have more info
 A simple way to consume this plugin, is by adding the following on [plugin.cfg](https://github.com/coredns/coredns/blob/master/plugin.cfg), and recompile it as [detailed on coredns.io](https://coredns.io/2017/07/25/compile-time-enabling-or-disabling-plugins/#build-with-compile-time-configuration-file).
 
 ~~~
-example:github.com/coredns/example
+proxmox:github.com/konairius/coredns-proxmox
 ~~~
-
-Put this early in the plugin list, so that *example* is executed before any of the other plugins.
 
 After this you can compile coredns by:
 
@@ -36,10 +34,30 @@ Or you can instead use make:
 make
 ```
 
+## Tests
+
+For running the tests you have to set the following environment variables
+
+``` sh
+CDNS_PX_BACKEND="https://proxmox.example.com:8006/api2/json/"
+CDNS_PX_TOKEN_ID="coredns@pve!coredns"
+CDNS_PX_TOKEN_SECRET="xyaaaa-b4cd-cde5-abc4-1234567"
+CDNS_PX_INSECURE="false"
+CDNS_PX_NODE_NAME="saturn"
+CDNS_PX_VM_NAME="vm01"
+CDNS_PX_VM_IP_V4="10.2.40.13"
+CDNS_PX_VM_IP_V6="::1"
+```
+
 ## Syntax
 
 ~~~ txt
-example
+proxmox {
+  backend https://proxmox.example.com:8006/api2/json/
+  token_id coredns@pve!coredns
+  token_secret xyaaaa-b4cd-cde5-abc4-1234567
+  insecure false
+}
 ~~~
 
 ## Metrics
@@ -56,22 +74,31 @@ This plugin reports readiness to the ready plugin. It will be immediately ready.
 
 ## Examples
 
-In this configuration, we forward all queries to 9.9.9.9 and print "example" whenever we receive
-a query.
+In this configuration, we very the certificate.
 
 ~~~ corefile
 . {
-  forward . 9.9.9.9
-  example
+  proxmox {
+    backend https://proxmox.example.com:8006/api2/json/
+    token_id coredns@pve!coredns
+    token_secret xyaaaa-b4cd-cde5-abc4-1234567
+    insecure false
+  }
+  log
 }
 ~~~
 
-Or without any external connectivity:
+Or without certificate check:
 
 ~~~ corefile
 . {
-  whoami
-  example
+  proxmox {
+    backend https://proxmox.example.com:8006/api2/json/
+    token_id coredns@pve!coredns
+    token_secret xyaaaa-b4cd-cde5-abc4-1234567
+    insecure true
+  }
+  log
 }
 ~~~
 
