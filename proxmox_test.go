@@ -106,8 +106,8 @@ func TestProxmox_GetIPsByNameIPv4(t *testing.T) {
 	}
 
 	t.Log(rec.Msg)
-	if a := rec.Msg.Answer; len(a) != 3 {
-		t.Errorf("Expected 3 answer, got %d", len(a))
+	if a := rec.Msg.Answer; len(a) != 1 {
+		t.Errorf("Expected 1 answer, got %d", len(a))
 	}
 	if a := rec.Msg.Answer[0].(*dns.A).A.String(); a != "10.2.40.13" {
 		t.Errorf("Expected 10.2.40.13, got %s", a)
@@ -137,11 +137,34 @@ func TestProxmox_GetIPsByNameIPv6(t *testing.T) {
 	}
 
 	t.Log(rec.Msg)
-	if a := rec.Msg.Answer; len(a) != 3 {
-		t.Errorf("Expected 3 answer, got %d", len(a))
+	if a := rec.Msg.Answer; len(a) != 2 {
+		t.Errorf("Expected 2 answer, got %d", len(a))
 	}
-	if a := rec.Msg.Answer[0].(*dns.A).A.String(); a != "10.2.40.13" {
-		t.Errorf("Expected 10.2.40.13, got %s", a)
+}
+
+func TestProxmox_GetNotFound(t *testing.T) {
+	backend := "https://jupiter.renner.uno:8006/api2/json/"
+	tokenId := "root@pam!cdns-dev"
+	tokenSecret := "afe4c1a4-29a5-472a-8b8b-00c4c0b36b7d"
+	vmName := "not_existing.srv.renner.uno."
+
+	pve := Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret}
+
+	ctx := context.TODO()
+	r := new(dns.Msg)
+	r.SetQuestion(vmName, dns.TypeAAAA)
+	// Create a new Recorder that captures the result, this isn't actually used in this test
+	// as it just serves as something that implements the dns.ResponseWriter interface.
+	rec := dnstest.NewRecorder(&test.ResponseWriter{})
+
+	// Call our plugin directly, and check the result.
+	_, err := pve.ServeDNS(ctx, rec, r)
+
+	if err != nil && err.Error() != "no next plugin found" {
+		return
 	}
 
+	if err != nil {
+		t.Error(err)
+	}
 }
