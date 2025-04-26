@@ -145,17 +145,23 @@ func TestProxmox_GetIPsByNameIPv6(t *testing.T) {
 	if aaaa := rec.Msg.Answer; len(aaaa) != iAwaitedAnswersIPv6 {
 		t.Errorf("Expected %d answer, got %d", iAwaitedAnswersIPv6, len(aaaa))
 	}
-	if aaaa := rec.Msg.Answer[0].(*dns.AAAA).AAAA.String(); aaaa != vmIPv6 {
-		t.Errorf("Expected %s, got %s", vmIPv6, aaaa)
+
+	found := false
+
+	for _, answer := range rec.Msg.Answer {
+		if aaaa := answer.(*dns.AAAA).AAAA.String(); aaaa == vmIPv6 {
+			found = true
+		} else {
+			t.Logf("Expected %s, got %s", vmIPv6, aaaa)
+		}
 	}
-
+	if !found {
+		t.Errorf("Expected %s, but ip was not found", vmIPv6)
+	}
+}
 func TestProxmox_GetNotFound(t *testing.T) {
-	backend := "https://jupiter.renner.uno:8006/api2/json/"
-	tokenId := "root@pam!cdns-dev"
-	tokenSecret := "afe4c1a4-29a5-472a-8b8b-00c4c0b36b7d"
-	vmName := "not_existing.srv.renner.uno."
-
-	pve := Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret}
+	pve := Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret, Insecure: insecure}
+	vmName := "not_existing.invalid."
 
 	ctx := context.TODO()
 	r := new(dns.Msg)
