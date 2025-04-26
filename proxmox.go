@@ -21,6 +21,7 @@ type Proxmox struct {
 	TokenId     string
 	TokenSecret string
 	Insecure    string
+	Interfaces  []string
 	Next        plugin.Handler
 }
 
@@ -208,10 +209,24 @@ func (p Proxmox) GetIPsById(node string, vmid int) (ips []net.IP, err error) {
 	ipResult := new([]net.IP)
 
 	for _, netInterface := range nodes.Data.Result {
-		for _, addr := range netInterface.IpAddresses {
-			ip := net.ParseIP(addr.IpAddress)
-			if !ip.IsLoopback() {
-				*ipResult = append(*ipResult, ip)
+
+		if len(p.Interfaces) > 0 {
+			for _, interf := range p.Interfaces {
+				if interf == netInterface.Name {
+					for _, addr := range netInterface.IpAddresses {
+						ip := net.ParseIP(addr.IpAddress)
+						if !ip.IsLoopback() {
+							*ipResult = append(*ipResult, ip)
+						}
+					}
+				}
+			}
+		} else {
+			for _, addr := range netInterface.IpAddresses {
+				ip := net.ParseIP(addr.IpAddress)
+				if !ip.IsLoopback() {
+					*ipResult = append(*ipResult, ip)
+				}
 			}
 		}
 	}
