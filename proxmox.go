@@ -39,8 +39,11 @@ func (p Proxmox) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 		return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
 	}
 
+	found := false
+
 	for _, ip := range ips {
 		if ip.To4() == nil && state.QType() == dns.TypeAAAA {
+			found = true
 			m.Answer = append(m.Answer, &dns.AAAA{
 				Hdr: dns.RR_Header{
 					Name:   state.QName(),
@@ -51,6 +54,7 @@ func (p Proxmox) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 				AAAA: ip,
 			})
 		} else if ip.To4() != nil && state.QType() == dns.TypeA {
+			found = true
 			m.Answer = append(m.Answer, &dns.A{
 				Hdr: dns.RR_Header{
 					Name:   state.QName(),
@@ -63,9 +67,14 @@ func (p Proxmox) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg)
 		}
 
 	}
+
+	if !found {
+		return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
+	}
 	err = w.WriteMsg(m)
 	return 0, err
 }
+
 func (p Proxmox) GetNodes() (info []NodeInfo, err error) {
 	requestBody := bytes.NewBufferString("")
 	req, err := http.NewRequest(http.MethodGet, p.Backend+"nodes", requestBody)
