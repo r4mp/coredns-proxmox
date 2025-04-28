@@ -6,6 +6,14 @@ import (
 	"github.com/coredns/coredns/plugin"
 )
 
+type Config struct {
+	backend     string
+	tokenId     string
+	tokenSecret string
+	insecure    bool
+	interfaces  string
+}
+
 // init registers this plugin.
 func init() { plugin.Register("proxmox", setup) }
 func setup(c *caddy.Controller) error {
@@ -14,6 +22,8 @@ func setup(c *caddy.Controller) error {
 	tokenId := ""
 	tokenSecret := ""
 	insecure := ""
+	interfaces := []string{}
+	networks := []string{}
 
 	c.Next()
 	if c.NextBlock() {
@@ -43,6 +53,22 @@ func setup(c *caddy.Controller) error {
 				}
 				insecure = c.Val()
 				break
+			case "interfaces":
+				for c.NextArg() {
+					interfaces = append(interfaces, c.Val())
+				}
+				if len(interfaces) == 0 {
+					return plugin.Error("proxmox", c.ArgErr())
+				}
+				break
+			case "networks":
+				for c.NextArg() {
+					networks = append(networks, c.Val())
+				}
+				if len(networks) == 0 {
+					return plugin.Error("proxmox", c.ArgErr())
+				}
+				break
 			default:
 				if c.Val() != "}" {
 					return plugin.Error("proxmox", c.Err("unknown property"))
@@ -59,7 +85,15 @@ func setup(c *caddy.Controller) error {
 	}
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
-		return Proxmox{Backend: backend, TokenId: tokenId, TokenSecret: tokenSecret, Insecure: insecure, Next: next}
+		return Proxmox{
+			Backend:     backend,
+			TokenId:     tokenId,
+			TokenSecret: tokenSecret,
+			Insecure:    insecure,
+			Interfaces:  interfaces,
+			Networks:    networks,
+			Next:        next,
+		}
 	})
 
 	return nil
