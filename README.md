@@ -65,6 +65,7 @@ proxmox {
 ~~~
 * `insecure` disable the certificate check
 * `interfaces` limit the results to some interfaces
+* `networks` limit the results to some networks
 
 ## Metrics
 
