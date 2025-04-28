@@ -95,7 +95,7 @@ In this configuration we limit the results to some interfaces
 }
 ~~~
 
-Or to some interfaces ans some networks
+Or to some interfaces and some networks
 
 ~~~ corefile
 . {
