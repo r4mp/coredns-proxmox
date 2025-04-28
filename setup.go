@@ -6,14 +6,6 @@ import (
 	"github.com/coredns/coredns/plugin"
 )
 
-type Config struct {
-	backend     string
-	tokenId     string
-	tokenSecret string
-	insecure    bool
-	interfaces  string
-}
-
 // init registers this plugin.
 func init() { plugin.Register("proxmox", setup) }
 func setup(c *caddy.Controller) error {
