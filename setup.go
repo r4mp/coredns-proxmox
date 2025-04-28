@@ -1,8 +1,6 @@
 package proxmox
 
 import (
-	"strings"
-
 	"github.com/coredns/caddy"
 	"github.com/coredns/coredns/core/dnsserver"
 	"github.com/coredns/coredns/plugin"
@@ -24,8 +22,8 @@ func setup(c *caddy.Controller) error {
 	tokenId := ""
 	tokenSecret := ""
 	insecure := ""
-	var interfaces []string
-	var networks []string
+	interfaces := []string{}
+	networks := []string{}
 
 	c.Next()
 	if c.NextBlock() {
@@ -56,16 +54,20 @@ func setup(c *caddy.Controller) error {
 				insecure = c.Val()
 				break
 			case "interfaces":
-				if !c.NextArg() {
+				for c.NextArg() {
+					interfaces = append(interfaces, c.Val())
+				}
+				if len(interfaces) == 0 {
 					return plugin.Error("proxmox", c.ArgErr())
 				}
-				interfaces = strings.Split(c.Val(), " ")
 				break
 			case "networks":
-				if !c.NextArg() {
+				for c.NextArg() {
+					networks = append(networks, c.Val())
+				}
+				if len(networks) == 0 {
 					return plugin.Error("proxmox", c.ArgErr())
 				}
-				networks = strings.Split(c.Val(), " ")
 				break
 			default:
 				if c.Val() != "}" {

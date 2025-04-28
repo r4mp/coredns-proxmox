@@ -60,6 +60,7 @@ proxmox {
   token_secret xyaaaa-b4cd-cde5-abc4-1234567
   insecure false
   interfaces INTERFACES...
+  networks NETWORKS...
 }
 ~~~
 * `insecure` disable the certificate check
@@ -88,7 +89,23 @@ In this configuration we limit the results to some interfaces
     token_id coredns@pve!coredns
     token_secret xyaaaa-b4cd-cde5-abc4-1234567
     insecure false
-    interfaces "ens18 wg0"
+    interfaces ens18 wg0
+  }
+  log
+}
+~~~
+
+Or to some interfaces ans some networks
+
+~~~ corefile
+. {
+  proxmox {
+    backend https://proxmox.example.com:8006/api2/json/
+    token_id coredns@pve!coredns
+    token_secret xyaaaa-b4cd-cde5-abc4-1234567
+    insecure false
+    interfaces ens18 wg0
+    networks 10.10.10.0/24
   }
   log
 }

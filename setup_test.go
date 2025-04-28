@@ -29,7 +29,7 @@ func TestSetup(t *testing.T) {
 				token_id "coredns@pve!coredns"
 				token_secret "xyaaaa-b4cd-cde5-abc4-1234567"
 				insecure true
-				interfaces "ens18 wg0"
+				interfaces ens18 wg0
 			}`,
 			false,
 		},
@@ -39,7 +39,7 @@ func TestSetup(t *testing.T) {
 				token_id "coredns@pve!coredns"
 				token_secret "xyaaaa-b4cd-cde5-abc4-1234567"
 				insecure true
-				interfaces "wg0"
+				interfaces wg0
 			}`,
 			false,
 		},
@@ -49,8 +49,8 @@ func TestSetup(t *testing.T) {
 				token_id "coredns@pve!coredns"
 				token_secret "xyaaaa-b4cd-cde5-abc4-1234567"
 				insecure true
-				interfaces "wg0"
-				networks "10.10.22.0/24"
+				interfaces wg0
+				networks 10.10.22.0/24
 			}`,
 			false,
 		},
@@ -60,7 +60,7 @@ func TestSetup(t *testing.T) {
 				token_id "coredns@pve!coredns"
 				token_secret "xyaaaa-b4cd-cde5-abc4-1234567"
 				insecure true
-				networks "10.10.22.0/24"
+				networks 10.10.22.0/24
 			}`,
 			false,
 		},
