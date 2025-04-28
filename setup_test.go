@@ -48,6 +48,27 @@ func TestSetup(t *testing.T) {
 				backend "https://proxmox.example.com:8006/api2/json/"
 				token_id "coredns@pve!coredns"
 				token_secret "xyaaaa-b4cd-cde5-abc4-1234567"
+				insecure true
+				interfaces "wg0"
+				networks "10.10.22.0/24"
+			}`,
+			false,
+		},
+		{
+			`proxmxox {
+				backend "https://proxmox.example.com:8006/api2/json/"
+				token_id "coredns@pve!coredns"
+				token_secret "xyaaaa-b4cd-cde5-abc4-1234567"
+				insecure true
+				networks "10.10.22.0/24"
+			}`,
+			false,
+		},
+		{
+			`proxmxox {
+				backend "https://proxmox.example.com:8006/api2/json/"
+				token_id "coredns@pve!coredns"
+				token_secret "xyaaaa-b4cd-cde5-abc4-1234567"
 				interfaces "ens18 wg0"
 			}`,
 			true,

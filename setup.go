@@ -25,6 +25,7 @@ func setup(c *caddy.Controller) error {
 	tokenSecret := ""
 	insecure := ""
 	var interfaces []string
+	var networks []string
 
 	c.Next()
 	if c.NextBlock() {
@@ -60,6 +61,12 @@ func setup(c *caddy.Controller) error {
 				}
 				interfaces = strings.Split(c.Val(), " ")
 				break
+			case "networks":
+				if !c.NextArg() {
+					return plugin.Error("proxmox", c.ArgErr())
+				}
+				networks = strings.Split(c.Val(), " ")
+				break
 			default:
 				if c.Val() != "}" {
 					return plugin.Error("proxmox", c.Err("unknown property"))
@@ -82,6 +89,7 @@ func setup(c *caddy.Controller) error {
 			TokenSecret: tokenSecret,
 			Insecure:    insecure,
 			Interfaces:  interfaces,
+			Networks:    networks,
 			Next:        next,
 		}
 	})
